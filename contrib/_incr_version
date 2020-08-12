@@ -1,0 +1,15 @@
+#!/bin/sh -eu
+old_version="$1"
+new_version="$2"
+
+sed -i Project.toml -e "s/^version = .*/version = \"$new_version\"/g"
+
+git add Project.toml
+git commit -m "update version to $new_version"
+
+commit="$(git rev-parse HEAD)"
+
+echo "After pushing to github run the following command to trigger package registration:"
+tee <<EOF
+    jq -n '{body: "@JuliaRegistrator register"}' | curl -H "Authorization: token \$(pass github@token-cli)" --data @- https://api.github.com/repos/stev47/OpticalFlowUtils.jl/commits/$commit/comments
+EOF
