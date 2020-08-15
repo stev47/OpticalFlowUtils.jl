@@ -21,4 +21,4 @@ save("output.flo", x)
 ## Implementation Notes
 
  - flow fields have the type signature `AbstractArray{<:StaticVector{N},N} where N`
-   while currently only `N = 2` is supported.
+   while currently only `N = 2` is considered.

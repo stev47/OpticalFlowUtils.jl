@@ -21,9 +21,9 @@ uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 
 [[FileIO]]
 deps = ["Pkg"]
-git-tree-sha1 = "f354b2087a3b01c1d7152c19f45886c8a036fa5e"
+git-tree-sha1 = "1e7e88a949b52e6f7f589041bd60928322414997"
 uuid = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
-version = "1.4.0"
+version = "1.4.1"
 
 [[FixedPointNumbers]]
 deps = ["Statistics"]
