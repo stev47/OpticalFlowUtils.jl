@@ -5,8 +5,8 @@ using Colors: HSV
 """
     colorflow(flo; maxflow=maximum(skipmissing(norm.(flo))))
 
-Visualize the given vectorfield `flo` by creating an image encoding direction
-as color and length as saturation.
+Visualize the given 2d-vectorfield `flo` by creating an image encoding
+direction as color and length as saturation.
 Missing values are encoded as black.
 """
 function colorflow(flo; maxflow=maximum(skipmissing(norm.(flo))))
