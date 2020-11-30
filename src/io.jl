@@ -66,6 +66,6 @@ function save(s::Stream{format"FLO"}, data::FlowField)
         # transform directions col- to row-major
         v = reverse(v)
 
-        write(s, v .|> htol)
+        write.(Ref(s), v .|> htol)
     end
 end
