@@ -2,7 +2,6 @@ using Test
 
 using FileIO: Stream, File, @format_str, load, save
 using OpticalFlowUtils
-using StaticArrays: SA
 
 @testset "io" begin
     data = UInt32[0x48454950, 0x00000002, 0x00000001,
@@ -13,9 +12,9 @@ using StaticArrays: SA
     close(io)
 
     x = load(file)
-    @test size(x) == (1, 2)
-    @test x[1, 1] == SA[1., 0]
-    @test all(ismissing, x[1, 2])
+    @test size(x) == (2, 1, 2)
+    @test all(x[:, 1, 1] .== (1., 0))
+    @test all(ismissing, x[:, 1, 2])
 
     save(File{format"FLO"}(file), x)
     saveddata = reinterpret(eltype(data), read(file))

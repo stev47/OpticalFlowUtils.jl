@@ -14,7 +14,6 @@
 # [4] http://sintel.is.tue.mpg.de/
 
 using FileIO: File, Stream, @format_str, skipmagic, magic
-using StaticArrays: StaticVector, SVector
 
 const iodims = 2
 const T = Float32
@@ -29,43 +28,49 @@ function load(f::File{format"FLO"})
 end
 
 function load(s::Stream{format"FLO"})
-    sz = read(s, SVector{iodims,Int32}) .|> ltoh
-    data = Matrix{SVector{iodims,T_}}(undef, sz...)
+    sz = ntuple(iodims) do k
+        read(s, Int32) |> ltoh
+    end
 
+    data = Array{T_}(undef, iodims, sz...)
     for I in eachindex(data)
-        v = read(s, SVector{iodims,T}) .|> ltoh
+        data[I] = read(s, T) |> ltoh
+    end
 
-        # transform directions row- to col-major
-        v = reverse(v)
-
+    for J in CartesianIndices(sz)
+        Jv = view(data, :, J)
         # spec wording is misleading: infering from the ground truth files
         # it should be "or" instead of "either or"
-        data[I] = any(abs.(v) .> 1f9) ?
-            fill(missing, SVector{iodims,T_}) : v
+        if any(x -> abs(x) > 1f9, Jv)
+            Jv .= missing
+        end
     end
     # row- to col-major
-    return permutedims(data)
+    reverse!(data, dims = 1)
+    return permutedims(data, (1, 3, 2, (4:iodims + 1)...))
 end
 
-function save(f::File{format"FLO"}, data::FlowField)
+function save(f::File{format"FLO"}, data::AbstractArray)
     open(f, "w") do s
         write(s, magic(format"FLO"))
         save(s, data)
     end
 end
 
-function save(s::Stream{format"FLO"}, data::FlowField)
-    # col- to row-major
-    data = permutedims(data)
+function save(s::Stream{format"FLO"}, data::AbstractArray)
+    size(data, 1) != ndims(data) - 1 &&
+        throw(ArgumentError("invalid dimensions $(size(data)) for flow field"))
 
-    write(s, SVector{iodims,Int32}(size(data)) .|> htol)
+    # col- to row-major
+    data = permutedims(data, (1, 3, 2, (4:iodims + 1)...))
+    reverse!(data, dims = 1)
+
+    for k in 1:iodims
+        write(s, Int32(size(data, k + 1)) |> htol)
+    end
 
     for I in eachindex(data)
-        v = convert.(T, coalesce.(data[I], nodata))
-
-        # transform directions col- to row-major
-        v = reverse(v)
-
-        write.(Ref(s), v .|> htol)
+        v = convert(T, coalesce(data[I], nodata))
+        write(s, v |> htol)
     end
 end
