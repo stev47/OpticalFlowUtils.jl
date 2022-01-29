@@ -8,9 +8,10 @@ using Colors: HSV
 Visualize the given flow field `flo` by creating an image encoding
 direction as color and length as saturation (scaled using `maxflow`).
 Missing values are encoded as black.
-If `maxflow` is omitted, it will be computed from the input.
+If `maxflow` is omitted, it will be computed from the input using the `maxflow`
+function.
 """
-function colorflow(flo; maxflow = _maxflow(flo))
+function colorflow(flo; maxflow = maxflow(flo))
     CT = HSV{Float32}
     color(x1, x2) = ismissing(x1) || ismissing(x2) ?
         CT(0, 1, 0) :
@@ -20,7 +21,13 @@ function colorflow(flo; maxflow = _maxflow(flo))
     return color.(x1, x2)
 end
 
-function _maxflow(flo)
+"""
+    maxflow(flo)
+
+Compute maximum 2-norm of all displacement vectors.
+Missing values are skipped.
+"""
+function maxflow(flo)
     return maximum(CartesianIndices(axes(flo)[2:end])) do I
         v = view(flo, :, I)
         any(ismissing, v) && return zero(eltype(flo))
